@@ -63,6 +63,7 @@ namespace AtdUI
         public AsyncSocketTCPServer(int listenPort)
             : this(IPAddress.Any, listenPort, 1024)
         {
+
         }
 
         /// <summary>
@@ -75,7 +76,7 @@ namespace AtdUI
         }
 
         /// <summary>
-        /// 异步Socket TCP服务器
+        /// 异步Socket TCP服务器 
         /// </summary>
         /// <param name="localIPAddress">监听的IP地址</param>
         /// <param name="listenPort">监听的端口</param>
@@ -133,9 +134,7 @@ namespace AtdUI
             if (IsRunning)
             {
                 IsRunning = false;
-                _serverSock.Close();
-                //TODO 关闭对所有客户端的连接
-
+                _serverSock.Close();//关闭对所有客户端的连接
             }
         }
 
@@ -165,7 +164,7 @@ namespace AtdUI
                         _clientCount++;
                         RaiseClientConnected(state); //触发客户端连接事件
                     }
-                    state.RecvDataBuffer = new byte[client.ReceiveBufferSize];
+                    state.RecvDataBuffer = new byte[client.ReceiveBufferSize];//数据接收缓存区的选择？
                     //开始接受来自该客户端的数据
                     client.BeginReceive(state.RecvDataBuffer, 0, state.RecvDataBuffer.Length, SocketFlags.None,
                      new AsyncCallback(HandleDataReceived), state);
@@ -178,18 +177,18 @@ namespace AtdUI
         /// <summary>
         /// 处理客户端数据
         /// </summary>
-        /// <param name="ar"></param>
-        private void HandleDataReceived(IAsyncResult ar)
+        /// <param name="iar"></param>
+        private void HandleDataReceived(IAsyncResult iar)
         {
             if (IsRunning)
             {
-                AsyncSocketState state = (AsyncSocketState)ar.AsyncState;
+                AsyncSocketState state = (AsyncSocketState)iar.AsyncState;
                 Socket client = state.ClientSocket;
                 try
                 {
                     //如果两次开始了异步的接收,所以当客户端退出的时候
                     //会两次执行EndReceive
-                    int recv = client.EndReceive(ar);
+                    int recv = client.EndReceive(iar);
                     if (recv == 0)
                     {
                         //C- TODO 触发事件 (关闭客户端)
@@ -197,17 +196,17 @@ namespace AtdUI
                         RaiseNetError(state);
                         return;
                     }
-                    //TODO 处理已经读取的数据 ps:数据在state的RecvDataBuffer中
-
+                     //TODO 处理已经读取的数据 ps:数据在state的RecvDataBuffer中
                     //C- TODO 触发数据接收事件
                     RaiseDataReceived(state);
                 }
+
                 catch (SocketException)
                 {
                     //C- TODO 异常处理
                     RaiseNetError(state);
                 }
-                finally//这里可能会有问题
+                finally//这里可能会有问题！！！！！
                 {
                     //继续接收来自来客户端的数据
                     client.BeginReceive(state.RecvDataBuffer, 0, state.RecvDataBuffer.Length, SocketFlags.None,
@@ -463,7 +462,7 @@ namespace AtdUI
     public class AsyncSocketState
     {
         /// <summary>
-        /// 接收数据缓冲区
+        /// 接收数据缓冲区 字段
         /// </summary>
         private byte[] _recvBuffer;
 
@@ -478,8 +477,10 @@ namespace AtdUI
         /// </summary>
         private Socket _clientSock;
 
+
+
         /// <summary>
-        /// 接收数据缓冲区 
+        /// 接收数据缓冲区 属性
         /// </summary>
         public byte[] RecvDataBuffer
         {
@@ -494,7 +495,7 @@ namespace AtdUI
         }
 
         /// <summary>
-        /// 存取会话的报文
+        /// 存取会话的报文 属性
         /// </summary>
         public string Datagram
         {
@@ -509,7 +510,7 @@ namespace AtdUI
         }
 
         /// <summary>
-        /// 获得与客户端会话关联的Socket对象
+        /// 获得与客户端会话关联的Socket对象 属性
         /// </summary>
         public Socket ClientSocket
         {
@@ -519,8 +520,17 @@ namespace AtdUI
 
             }
         }
+
+        public bool socketislienorofflien()
+        {
+
+            bool b = ClientSocket.Connected;
+            return b;
+        }
+
+
         /// <summary>
-        /// 构造函数
+        /// 构造函数 有参数的
         /// </summary>
         /// <param name="cliSock">会话使用的Socket连接</param>
         public AsyncSocketState(Socket cliSock)
@@ -544,7 +554,6 @@ namespace AtdUI
         /// </summary>
         public void Close()
         {
-
             //关闭数据的接受和发送
             _clientSock.Shutdown(SocketShutdown.Both);
 
